@@ -1,0 +1,166 @@
+package com.diboot.core.starter;
+
+import com.diboot.core.util.ContextHelper;
+import com.diboot.core.util.S;
+import com.diboot.core.util.SqlExecutor;
+import com.diboot.core.util.V;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.*;
+
+/**
+ * SQL处理类
+ * @author Mazhicheng
+ * @version v2.0
+ * @date 2019/08/01
+ */
+public class SqlHandler {
+    private static final Logger logger = LoggerFactory.getLogger(SqlHandler.class);
+
+    /***
+     * 初始化安装SQL
+     * @return
+     */
+    public static void initBootstrapSq(Class inst, String dbType){
+        logger.info("diboot-core初始化SQL执行开始:");
+        extractAndExecuteSqls(inst, dbType);
+        logger.info("diboot-core初始化SQL执行完成！");
+    }
+
+    /***
+     * 从SQL文件读出的行内容中 提取SQL语句并执行
+     * @param sqlFilePath
+     * @return
+     */
+    private static boolean extractAndExecuteSqls(Class inst, String sqlFilePath){
+        List<String> sqlFileReadLines = readLinesFromResource(inst, sqlFilePath);
+        if(V.isEmpty(sqlFileReadLines)){
+            return false;
+        }
+        // 解析SQL
+        List<String> sqlStatementList = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        for(String line : sqlFileReadLines){
+            if(line.contains("--")){
+                line = line.substring(0, line.indexOf("--"));
+            }
+            sb.append(" ");
+            if(line.contains(";")){
+                // 语句结束
+                sb.append(line.substring(0, line.indexOf(";")));
+                String cleanSql = clearComments(sb.toString());
+                sqlStatementList.add(cleanSql);
+                sb.setLength(0);
+                if(line.indexOf(";") < line.length()-1){
+                    String leftSql = line.substring(line.indexOf(";")+1);
+                    if(V.notEmpty(leftSql)){
+                        sb.append(leftSql);
+                    }
+                }
+            }
+            else if(V.notEmpty(line)){
+                sb.append(line);
+            }
+        }
+        if(sb.length() > 0){
+            String cleanSql = clearComments(sb.toString());
+            sqlStatementList.add(cleanSql);
+            sb.setLength(0);
+        }
+        // 返回解析后的SQL语句
+        return executeMultipleUpdateSqls(sqlStatementList);
+    }
+
+    /***
+     * 执行多条批量更新SQL
+     * @param sqlStatementList
+     * @return
+     */
+    private static boolean executeMultipleUpdateSqls(List<String> sqlStatementList){
+        if(V.isEmpty(sqlStatementList)){
+            return false;
+        }
+        for(String sqlStatement : sqlStatementList){
+            try{
+                boolean success = SqlExecutor.executeUpdate(sqlStatement, null);
+                if(success){
+                    logger.info("初始化SQL执行完成: "+ S.substring(sqlStatement, 0, 60) + "...");
+                }
+            }
+            catch (Exception e){
+                logger.error("初始化SQL执行异常，请检查或手动执行", e);
+            }
+        }
+        return true;
+    }
+
+    /***
+     * 获取
+     * @param inst
+     * @return
+     */
+    private static List<String> readLinesFromResource(Class inst, String dbType){
+        List<String> lines = null;
+        String path = "META-INF/sql/init-"+dbType+".sql";
+        try{
+            InputStream is = inst.getClassLoader().getResourceAsStream(path);
+            lines = IOUtils.readLines(is, "UTF-8");
+        }
+        catch (FileNotFoundException fe){
+            logger.warn("暂不支持该数据库类型: "+dbType + "， 请参考其他数据库定义DDL手动初始化。");
+        }
+        catch (Exception e){
+            logger.warn("读取SQL文件异常: "+path, e);
+        }
+        return lines;
+    }
+
+    /***
+     * 剔除SQL中的注释，提取可执行的实际SQL
+     * @param inputSql
+     * @return
+     */
+    private static String clearComments(String inputSql){
+        String[] sqlRows = inputSql.split("\\n");
+        List<String> cleanSql = new ArrayList();
+        for(String row : sqlRows){
+            // 去除行注释
+            if(row.contains("--")){
+                row = row.substring(0, row.indexOf("--"));
+            }
+            if(V.notEmpty(row.trim())){
+                cleanSql.add(row);
+            }
+        }
+        inputSql = S.join(cleanSql, " ");
+
+        // 去除多行注释
+        inputSql = removeMultipleLineComments(inputSql);
+        // 去除换行
+        return inputSql.replaceAll("\r|\n", " ");
+    }
+
+    /***
+     * 去除多行注释
+     * @param inputSql
+     * @return
+     */
+    private static String removeMultipleLineComments(String inputSql){
+        if(inputSql.contains("*/*")){
+            //忽略此情况，避免死循环
+            return inputSql;
+        }
+        if(inputSql.contains("/*") && inputSql.contains("*/")){
+            inputSql = inputSql.substring(0, inputSql.lastIndexOf("/*")) + inputSql.substring(inputSql.indexOf("*/")+2, inputSql.length());
+        }
+        if(inputSql.contains("/*") && inputSql.contains("*/")){
+            return removeMultipleLineComments(inputSql);
+        }
+        return inputSql;
+    }
+
+}

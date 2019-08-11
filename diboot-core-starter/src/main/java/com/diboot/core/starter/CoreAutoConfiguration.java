@@ -3,18 +3,21 @@ package com.diboot.core.starter;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.extension.toolkit.JdbcUtils;
+import com.diboot.core.plugin.PluginManager;
 import com.diboot.core.util.D;
-import com.diboot.core.util.DateConverter;
 import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.format.FormatterRegistry;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,13 +29,27 @@ import java.util.List;
  * @date 2019/08/01
  */
 @Configuration
+@EnableConfigurationProperties(CoreProperties.class)
 @ComponentScan(basePackages={"com.diboot.core"})
 @MapperScan(basePackages = {"com.diboot.core.mapper"})
-public class DibootCoreAutoConfiguration implements WebMvcConfigurer {
+public class CoreAutoConfiguration{
 
-    /**
-     * JSON转换组件替换为fastJson
-     */
+    @Autowired
+    Environment environment;
+    @Autowired
+    CoreProperties properties;
+
+    @Bean
+    @ConditionalOnMissingBean(PluginManager.class)
+    public PluginManager pluginManager(){
+        PluginManager pluginManager = new PluginManager() {};
+        if(properties.isInitSql()){
+            DbType dbType = JdbcUtils.getDbType(environment.getProperty("spring.datasource.url"));
+            SqlHandler.initBootstrapSq(pluginManager.getClass(), dbType.getDb());
+        }
+        return pluginManager;
+    }
+
     @Bean
     public HttpMessageConverters fastJsonHttpMessageConverters() {
         FastJsonHttpMessageConverter converter = new FastJsonHttpMessageConverter();
@@ -50,11 +67,6 @@ public class DibootCoreAutoConfiguration implements WebMvcConfigurer {
 
         HttpMessageConverter<?> httpMsgConverter = converter;
         return new HttpMessageConverters(httpMsgConverter);
-    }
-
-    @Override
-    public void addFormatters(FormatterRegistry registry) {
-        registry.addConverter(new DateConverter());
     }
 
 }
