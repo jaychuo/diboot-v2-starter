@@ -1,5 +1,7 @@
 package com.diboot.core.starter;
 
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.extension.toolkit.JdbcUtils;
 import com.diboot.core.util.ContextHelper;
 import com.diboot.core.util.S;
 import com.diboot.core.util.SqlExecutor;
@@ -25,19 +27,20 @@ public class SqlHandler {
      * 初始化安装SQL
      * @return
      */
-    public static void initBootstrapSq(Class inst, String dbType){
+    public static void initBootstrapSq(Class inst, String jdbcUrl){
         logger.info("diboot-core初始化SQL执行开始:");
-        extractAndExecuteSqls(inst, dbType);
+        extractAndExecuteSqls(inst, jdbcUrl);
         logger.info("diboot-core初始化SQL执行完成！");
     }
 
     /***
      * 从SQL文件读出的行内容中 提取SQL语句并执行
-     * @param sqlFilePath
+     * @param jdbcUrl
      * @return
      */
-    private static boolean extractAndExecuteSqls(Class inst, String sqlFilePath){
-        List<String> sqlFileReadLines = readLinesFromResource(inst, sqlFilePath);
+    private static boolean extractAndExecuteSqls(Class inst, String jdbcUrl){
+        DbType dbType = JdbcUtils.getDbType(jdbcUrl);
+        List<String> sqlFileReadLines = readLinesFromResource(inst, dbType.getDb());
         if(V.isEmpty(sqlFileReadLines)){
             return false;
         }
@@ -52,7 +55,7 @@ public class SqlHandler {
             if(line.contains(";")){
                 // 语句结束
                 sb.append(line.substring(0, line.indexOf(";")));
-                String cleanSql = clearComments(sb.toString());
+                String cleanSql = buildPureSqlStatement(sb.toString(), jdbcUrl);
                 sqlStatementList.add(cleanSql);
                 sb.setLength(0);
                 if(line.indexOf(";") < line.length()-1){
@@ -67,12 +70,28 @@ public class SqlHandler {
             }
         }
         if(sb.length() > 0){
-            String cleanSql = clearComments(sb.toString());
+            String cleanSql = buildPureSqlStatement(sb.toString(), jdbcUrl);
             sqlStatementList.add(cleanSql);
             sb.setLength(0);
         }
         // 返回解析后的SQL语句
         return executeMultipleUpdateSqls(sqlStatementList);
+    }
+
+    /**
+     * 构建纯净可执行的SQL语句: 去除注释，替换变量
+     * @param sqlStatement
+     * @param jdbcUrl
+     * @return
+     */
+    private static String buildPureSqlStatement(String sqlStatement, String jdbcUrl){
+        sqlStatement = clearComments(sqlStatement);
+        // 替换sqlStatement中的变量，如{SCHEMA}
+        if(sqlStatement.contains("${SCHEMA}")){
+            String schema = extractSchema(jdbcUrl);
+            sqlStatement = S.replace(sqlStatement, "${SCHEMA}", schema);
+        }
+        return sqlStatement;
     }
 
     /***
@@ -163,4 +182,24 @@ public class SqlHandler {
         return inputSql;
     }
 
+    /**
+     * 提取Schema信息
+     * @param jdbcUrl
+     * @return
+     */
+    private static String[] JDBCURL_KEYWORDS = {"DatabaseName=", "/", ":"}, SUFFIX_KEYWORDS = {"?", ";"};
+    private static String extractSchema(String jdbcUrl){
+        for (String keyword : JDBCURL_KEYWORDS) {
+            if(S.contains(jdbcUrl, keyword)){
+                jdbcUrl = S.substringAfterLast(jdbcUrl, keyword);
+                break;
+            }
+        }
+        for (String keyword : SUFFIX_KEYWORDS) {
+            if(S.contains(jdbcUrl, keyword)){
+                jdbcUrl = S.substringBefore(jdbcUrl, keyword);
+            }
+        }
+        return jdbcUrl;
+    }
 }
