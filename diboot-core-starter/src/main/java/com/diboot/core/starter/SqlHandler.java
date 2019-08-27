@@ -27,7 +27,7 @@ public class SqlHandler {
      * 初始化安装SQL
      * @return
      */
-    public static void initBootstrapSq(Class inst, String jdbcUrl){
+    public static void initBootstrapSql(Class inst, String jdbcUrl){
         logger.info("diboot-core初始化SQL执行开始:");
         extractAndExecuteSqls(inst, jdbcUrl);
         logger.info("diboot-core初始化SQL执行完成！");
@@ -38,7 +38,7 @@ public class SqlHandler {
      * @param jdbcUrl
      * @return
      */
-    private static boolean extractAndExecuteSqls(Class inst, String jdbcUrl){
+    public static boolean extractAndExecuteSqls(Class inst, String jdbcUrl){
         DbType dbType = JdbcUtils.getDbType(jdbcUrl);
         List<String> sqlFileReadLines = readLinesFromResource(inst, dbType.getDb());
         if(V.isEmpty(sqlFileReadLines)){
@@ -84,7 +84,7 @@ public class SqlHandler {
      * @param jdbcUrl
      * @return
      */
-    private static String buildPureSqlStatement(String sqlStatement, String jdbcUrl){
+    protected static String buildPureSqlStatement(String sqlStatement, String jdbcUrl){
         sqlStatement = clearComments(sqlStatement);
         // 替换sqlStatement中的变量，如{SCHEMA}
         if(sqlStatement.contains("${SCHEMA}")){
@@ -99,7 +99,7 @@ public class SqlHandler {
      * @param sqlStatementList
      * @return
      */
-    private static boolean executeMultipleUpdateSqls(List<String> sqlStatementList){
+    public static boolean executeMultipleUpdateSqls(List<String> sqlStatementList){
         if(V.isEmpty(sqlStatementList)){
             return false;
         }
@@ -122,7 +122,7 @@ public class SqlHandler {
      * @param inst
      * @return
      */
-    private static List<String> readLinesFromResource(Class inst, String dbType){
+    protected static List<String> readLinesFromResource(Class inst, String dbType){
         List<String> lines = null;
         String path = "META-INF/sql/init-"+dbType+".sql";
         try{
@@ -188,7 +188,7 @@ public class SqlHandler {
      * @return
      */
     private static String[] JDBCURL_KEYWORDS = {"DatabaseName=", "/", ":"}, SUFFIX_KEYWORDS = {"?", ";"};
-    private static String extractSchema(String jdbcUrl){
+    public static String extractSchema(String jdbcUrl){
         for (String keyword : JDBCURL_KEYWORDS) {
             if(S.contains(jdbcUrl, keyword)){
                 jdbcUrl = S.substringAfterLast(jdbcUrl, keyword);

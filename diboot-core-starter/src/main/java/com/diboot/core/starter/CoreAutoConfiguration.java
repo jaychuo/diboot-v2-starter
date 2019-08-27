@@ -44,7 +44,7 @@ public class CoreAutoConfiguration{
     public PluginManager pluginManager(){
         PluginManager pluginManager = new PluginManager() {};
         if(properties.isInitSql()){
-            SqlHandler.initBootstrapSq(pluginManager.getClass(), environment.getProperty("spring.datasource.url"));
+            SqlHandler.initBootstrapSql(pluginManager.getClass(), environment.getProperty("spring.datasource.url"));
         }
         return pluginManager;
     }
