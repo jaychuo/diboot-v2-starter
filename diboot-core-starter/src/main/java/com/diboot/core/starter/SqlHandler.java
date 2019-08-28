@@ -187,7 +187,7 @@ public class SqlHandler {
      * @param jdbcUrl
      * @return
      */
-    private static String[] JDBCURL_KEYWORDS = {"DatabaseName=", "/", ":"}, SUFFIX_KEYWORDS = {"?", ";"};
+    private static String[] JDBCURL_KEYWORDS = {"DatabaseName=","database=", "/", ":"}, SUFFIX_KEYWORDS = {"?", ";"};
     public static String extractSchema(String jdbcUrl){
         for (String keyword : JDBCURL_KEYWORDS) {
             if(S.contains(jdbcUrl, keyword)){
@@ -202,4 +202,5 @@ public class SqlHandler {
         }
         return jdbcUrl;
     }
+
 }
