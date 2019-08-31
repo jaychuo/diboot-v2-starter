@@ -14,7 +14,7 @@ public class CoreProperties {
     /**
      * 是否初始化，只有当true时才会自动安装SQL
      */
-    private boolean initSql = false;
+    private boolean initSql = true;
 
     public boolean isInitSql() {
         return initSql;

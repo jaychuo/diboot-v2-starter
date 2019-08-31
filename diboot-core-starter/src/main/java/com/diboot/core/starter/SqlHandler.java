@@ -7,11 +7,18 @@ import com.diboot.core.util.S;
 import com.diboot.core.util.SqlExecutor;
 import com.diboot.core.util.V;
 import org.apache.commons.io.IOUtils;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.*;
 
 /**
@@ -23,24 +30,51 @@ import java.util.*;
 public class SqlHandler {
     private static final Logger logger = LoggerFactory.getLogger(SqlHandler.class);
 
+    // 数据字典SQL
+    public static final String DICTIONARY_SQL = "SELECT id FROM dictionary WHERE id=0";
+
     /***
      * 初始化安装SQL
      * @return
      */
-    public static void initBootstrapSql(Class inst, String jdbcUrl){
-        logger.info("diboot-core初始化SQL执行开始:");
-        extractAndExecuteSqls(inst, jdbcUrl);
-        logger.info("diboot-core初始化SQL执行完成！");
+    public static void initBootstrapSql(Class inst, String jdbcUrl, String sqlPath){
+        logger.info("diboot 初始化SQL执行开始:");
+        extractAndExecuteSqls(inst, jdbcUrl, sqlPath);
+        logger.info("diboot 初始化SQL执行完成！");
+    }
+
+    /**
+     * 检查SQL文件是否已经执行过
+     * @param sqlStatement
+     * @return
+     */
+    public static boolean checkIsTableExists(String sqlStatement){
+        // 获取SqlSessionFactory实例
+        SqlSessionFactory sqlSessionFactory = (SqlSessionFactory) ContextHelper.getBean(SqlSessionFactory.class);
+        if(sqlSessionFactory == null){
+            logger.warn("无法获取SqlSessionFactory实例，安装SQL将无法执行，请手动安装！");
+            return false;
+        }
+        try(SqlSession session = sqlSessionFactory.openSession(); Connection conn = session.getConnection(); PreparedStatement stmt = conn.prepareStatement(sqlStatement)){
+            ResultSet rs = stmt.executeQuery();
+            ResultSetMetaData meta = rs.getMetaData();
+            if(meta.getColumnCount() > 0){
+                rs.close();
+            }
+            return true;
+        }
+        catch(Exception e){
+            return false;
+        }
     }
 
     /***
      * 从SQL文件读出的行内容中 提取SQL语句并执行
-     * @param jdbcUrl
+     * @param sqlPath
      * @return
      */
-    public static boolean extractAndExecuteSqls(Class inst, String jdbcUrl){
-        DbType dbType = JdbcUtils.getDbType(jdbcUrl);
-        List<String> sqlFileReadLines = readLinesFromResource(inst, dbType.getDb());
+    public static boolean extractAndExecuteSqls(Class inst, String jdbcUrl, String sqlPath){
+        List<String> sqlFileReadLines = readLinesFromResource(inst, sqlPath);
         if(V.isEmpty(sqlFileReadLines)){
             return false;
         }
@@ -122,18 +156,17 @@ public class SqlHandler {
      * @param inst
      * @return
      */
-    protected static List<String> readLinesFromResource(Class inst, String dbType){
+    protected static List<String> readLinesFromResource(Class inst, String sqlPath){
         List<String> lines = null;
-        String path = "META-INF/sql/init-"+dbType+".sql";
         try{
-            InputStream is = inst.getClassLoader().getResourceAsStream(path);
+            InputStream is = inst.getClassLoader().getResourceAsStream(sqlPath);
             lines = IOUtils.readLines(is, "UTF-8");
         }
         catch (FileNotFoundException fe){
-            logger.warn("暂不支持该数据库类型: "+dbType + "， 请参考其他数据库定义DDL手动初始化。");
+            logger.warn("暂未发现数据库SQL: "+sqlPath + "， 请参考其他数据库定义DDL手动初始化。");
         }
         catch (Exception e){
-            logger.warn("读取SQL文件异常: "+path, e);
+            logger.warn("读取SQL文件异常: "+sqlPath, e);
         }
         return lines;
     }

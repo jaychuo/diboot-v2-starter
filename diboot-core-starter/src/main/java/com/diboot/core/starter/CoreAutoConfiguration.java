@@ -36,15 +36,20 @@ public class CoreAutoConfiguration{
 
     @Autowired
     Environment environment;
+
     @Autowired
-    CoreProperties properties;
+    CoreProperties coreProperties;
 
     @Bean
     @ConditionalOnMissingBean(PluginManager.class)
     public PluginManager pluginManager(){
         PluginManager pluginManager = new PluginManager() {};
-        if(properties.isInitSql()){
-            SqlHandler.initBootstrapSql(pluginManager.getClass(), environment.getProperty("spring.datasource.url"));
+        // 检查数据库字典是否已存在
+        if(coreProperties.isInitSql() && SqlHandler.checkIsTableExists(SqlHandler.DICTIONARY_SQL) == false){
+            String jdbcUrl = environment.getProperty("spring.datasource.url");
+            DbType dbType = JdbcUtils.getDbType(jdbcUrl);
+            String sqlPath = "META-INF/sql/init-core-"+dbType.getDb()+".sql";
+            SqlHandler.initBootstrapSql(pluginManager.getClass(), jdbcUrl, sqlPath);
         }
         return pluginManager;
     }
