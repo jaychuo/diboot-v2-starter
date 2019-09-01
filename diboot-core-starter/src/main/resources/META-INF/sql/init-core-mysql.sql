@@ -13,7 +13,7 @@ CREATE TABLE `dictionary` (
   `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '删除标记',
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8 COMMENT '数据字典';
 
 -- 创建索引
 create index idx_directory on dictionary(type, item_value);

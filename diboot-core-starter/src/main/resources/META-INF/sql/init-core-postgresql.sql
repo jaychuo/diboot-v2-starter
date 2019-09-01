@@ -1,18 +1,18 @@
 -- 建表
 create table dictionary (
-   id                   SERIAL not null,
-   parent_id            INT4                 not null,
-   type                 VARCHAR(50)          not null,
-   item_name            VARCHAR(100)         not null,
-   item_value           VARCHAR(100)         null,
-   comment              VARCHAR(200)         null,
-   extdata              VARCHAR(200)         null,
-   sort_id              INT2                 not null default 99,
-   system               INT2                 not null default 0,
-   editable             INT2                 not null default 1,
-   deleted              INT2                 not null default 0,
-   create_time          DATE                 not null default CURRENT_TIMESTAMP,
-   constraint PK_dictionary primary key (id)
+     id                   serial not null,
+     parent_id            int              not null,
+     type                 VARCHAR(50)          not null,
+     item_name            VARCHAR(100)         not null,
+     item_value           VARCHAR(100)         null,
+     comment              VARCHAR(200)         null,
+     extdata              VARCHAR(200)         null,
+     sort_id              smallint             not null default 99,
+     system               smallint             not null default 0,
+     editable             smallint             not null default 1,
+     deleted              smallint             not null default 0,
+     create_time          DATE                 not null default CURRENT_TIMESTAMP,
+     constraint PK_dictionary primary key (id)
 );
 -- 添加备注
 comment on column dictionary.id is 'ID';
