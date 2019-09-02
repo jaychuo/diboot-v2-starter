@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class CoreProperties {
 
     /**
-     * 是否初始化，只有当true时才会自动安装SQL
+     * 是否初始化，默认true自动安装SQL
      */
     private boolean initSql = true;
 

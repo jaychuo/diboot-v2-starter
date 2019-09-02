@@ -216,6 +216,20 @@ public class SqlHandler {
     }
 
     /**
+     * 提取数据库类型
+     * @param jdbcUrl
+     * @return
+     */
+    public static String extractDatabase(String jdbcUrl){
+        DbType dbType = JdbcUtils.getDbType(jdbcUrl);
+        String dbName = dbType.getDb();
+        if(dbName.startsWith(DbType.SQL_SERVER.getDb()) && !dbName.equals(DbType.SQL_SERVER.getDb())){
+            dbName = DbType.SQL_SERVER.getDb();
+        }
+        return dbName;
+    }
+
+    /**
      * 提取Schema信息
      * @param jdbcUrl
      * @return

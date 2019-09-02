@@ -47,8 +47,8 @@ public class CoreAutoConfiguration{
         // 检查数据库字典是否已存在
         if(coreProperties.isInitSql() && SqlHandler.checkIsTableExists(SqlHandler.DICTIONARY_SQL) == false){
             String jdbcUrl = environment.getProperty("spring.datasource.url");
-            DbType dbType = JdbcUtils.getDbType(jdbcUrl);
-            String sqlPath = "META-INF/sql/init-core-"+dbType.getDb()+".sql";
+            String dbName = SqlHandler.extractDatabase(jdbcUrl);
+            String sqlPath = "META-INF/sql/init-core-"+dbName+".sql";
             SqlHandler.initBootstrapSql(pluginManager.getClass(), jdbcUrl, sqlPath);
         }
         return pluginManager;
