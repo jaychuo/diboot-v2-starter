@@ -11,6 +11,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -31,16 +32,30 @@ public class SqlHandler {
     private static final Logger logger = LoggerFactory.getLogger(SqlHandler.class);
 
     // 数据字典SQL
-    public static final String DICTIONARY_SQL = "SELECT id FROM dictionary WHERE id=0";
+    public static final String DICTIONARY_SQL = "SELECT id FROM ${SCHEMA}.dictionary WHERE id=0";
+
+    private static String dbType;
+    private static String CURRENT_SCHEMA = null;
+
+    /**
+     * 初始化
+     * @param environment
+     */
+    public static void init(Environment environment) {
+        String jdbcUrl = environment.getProperty("spring.datasource.url");
+        dbType = SqlHandler.extractDatabaseType(jdbcUrl);
+    }
 
     /***
      * 初始化安装SQL
      * @return
      */
-    public static void initBootstrapSql(Class inst, String jdbcUrl, String sqlPath){
-        logger.info("diboot 初始化SQL执行开始:");
-        extractAndExecuteSqls(inst, jdbcUrl, sqlPath);
-        logger.info("diboot 初始化SQL执行完成！");
+    public static void initBootstrapSql(Class inst, Environment environment, String module){
+        if(dbType == null){
+            init(environment);
+        }
+        String sqlPath = "META-INF/sql/init-"+module+"-"+dbType+".sql";
+        extractAndExecuteSqls(inst, sqlPath);
     }
 
     /**
@@ -55,6 +70,7 @@ public class SqlHandler {
             logger.warn("无法获取SqlSessionFactory实例，安装SQL将无法执行，请手动安装！");
             return false;
         }
+        sqlStatement = buildPureSqlStatement(sqlStatement);
         try(SqlSession session = sqlSessionFactory.openSession(); Connection conn = session.getConnection(); PreparedStatement stmt = conn.prepareStatement(sqlStatement)){
             ResultSet rs = stmt.executeQuery();
             ResultSetMetaData meta = rs.getMetaData();
@@ -73,7 +89,7 @@ public class SqlHandler {
      * @param sqlPath
      * @return
      */
-    public static boolean extractAndExecuteSqls(Class inst, String jdbcUrl, String sqlPath){
+    public static boolean extractAndExecuteSqls(Class inst, String sqlPath){
         List<String> sqlFileReadLines = readLinesFromResource(inst, sqlPath);
         if(V.isEmpty(sqlFileReadLines)){
             return false;
@@ -89,7 +105,7 @@ public class SqlHandler {
             if(line.contains(";")){
                 // 语句结束
                 sb.append(line.substring(0, line.indexOf(";")));
-                String cleanSql = buildPureSqlStatement(sb.toString(), jdbcUrl);
+                String cleanSql = buildPureSqlStatement(sb.toString());
                 sqlStatementList.add(cleanSql);
                 sb.setLength(0);
                 if(line.indexOf(";") < line.length()-1){
@@ -104,7 +120,7 @@ public class SqlHandler {
             }
         }
         if(sb.length() > 0){
-            String cleanSql = buildPureSqlStatement(sb.toString(), jdbcUrl);
+            String cleanSql = buildPureSqlStatement(sb.toString());
             sqlStatementList.add(cleanSql);
             sb.setLength(0);
         }
@@ -115,15 +131,18 @@ public class SqlHandler {
     /**
      * 构建纯净可执行的SQL语句: 去除注释，替换变量
      * @param sqlStatement
-     * @param jdbcUrl
      * @return
      */
-    protected static String buildPureSqlStatement(String sqlStatement, String jdbcUrl){
+    protected static String buildPureSqlStatement(String sqlStatement){
         sqlStatement = clearComments(sqlStatement);
         // 替换sqlStatement中的变量，如{SCHEMA}
         if(sqlStatement.contains("${SCHEMA}")){
-            String schema = extractSchema(jdbcUrl);
-            sqlStatement = S.replace(sqlStatement, "${SCHEMA}", schema);
+            if(dbType.equals(DbType.SQL_SERVER.getDb())){
+                sqlStatement = S.replace(sqlStatement, "${SCHEMA}", getSqlServerCurrentSchema());
+            }
+            else{
+                sqlStatement = S.replace(sqlStatement, "${SCHEMA}.", "");
+            }
         }
         return sqlStatement;
     }
@@ -220,7 +239,7 @@ public class SqlHandler {
      * @param jdbcUrl
      * @return
      */
-    public static String extractDatabase(String jdbcUrl){
+    public static String extractDatabaseType(String jdbcUrl){
         DbType dbType = JdbcUtils.getDbType(jdbcUrl);
         String dbName = dbType.getDb();
         if(dbName.startsWith(DbType.SQL_SERVER.getDb()) && !dbName.equals(DbType.SQL_SERVER.getDb())){
@@ -229,25 +248,45 @@ public class SqlHandler {
         return dbName;
     }
 
+    //SQL Server查询当前schema
+    public static final String SQL_DEFAULT_SCHEMA = "SELECT DISTINCT default_schema_name FROM sys.database_principals where default_schema_name is not null AND name!='guest'";
     /**
-     * 提取Schema信息
-     * @param jdbcUrl
+     * 查询SqlServer当前schema
      * @return
      */
-    private static String[] JDBCURL_KEYWORDS = {"DatabaseName=","database=", "/", ":"}, SUFFIX_KEYWORDS = {"?", ";"};
-    public static String extractSchema(String jdbcUrl){
-        for (String keyword : JDBCURL_KEYWORDS) {
-            if(S.contains(jdbcUrl, keyword)){
-                jdbcUrl = S.substringAfterLast(jdbcUrl, keyword);
-                break;
+    public static String getSqlServerCurrentSchema(){
+        if(CURRENT_SCHEMA == null){
+            Object firstValue = queryFirstValue(SQL_DEFAULT_SCHEMA, "default_schema_name");
+            if(firstValue != null){
+                CURRENT_SCHEMA = (String)firstValue;
+            }
+            // dbo schema兜底
+            if(CURRENT_SCHEMA == null){
+                CURRENT_SCHEMA = "dbo";
             }
         }
-        for (String keyword : SUFFIX_KEYWORDS) {
-            if(S.contains(jdbcUrl, keyword)){
-                jdbcUrl = S.substringBefore(jdbcUrl, keyword);
+        return CURRENT_SCHEMA;
+    }
+
+    /**
+     * 查询SQL返回第一项
+     * @return
+     */
+    public static Object queryFirstValue(String sql, String key){
+        try{
+            List<Map<String, Object>> mapList = SqlExecutor.executeQuery(sql, null);
+            if(V.notEmpty(mapList)){
+                for (Map<String, Object> mapElement : mapList){
+                    if(mapElement.get(key) != null){
+                        return mapElement.get(key);
+                    }
+                }
             }
         }
-        return jdbcUrl;
+        catch(Exception e){
+            logger.error("获取SqlServer默认Schema异常: {}", e.getMessage());
+        }
+        return null;
     }
 
 }

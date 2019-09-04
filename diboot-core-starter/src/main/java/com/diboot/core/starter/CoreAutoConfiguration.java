@@ -43,13 +43,12 @@ public class CoreAutoConfiguration{
     @Bean
     @ConditionalOnMissingBean(PluginManager.class)
     public PluginManager pluginManager(){
+        // 初始化SCHEMA
+        SqlHandler.init(environment);
         PluginManager pluginManager = new PluginManager() {};
         // 检查数据库字典是否已存在
         if(coreProperties.isInitSql() && SqlHandler.checkIsTableExists(SqlHandler.DICTIONARY_SQL) == false){
-            String jdbcUrl = environment.getProperty("spring.datasource.url");
-            String dbName = SqlHandler.extractDatabase(jdbcUrl);
-            String sqlPath = "META-INF/sql/init-core-"+dbName+".sql";
-            SqlHandler.initBootstrapSql(pluginManager.getClass(), jdbcUrl, sqlPath);
+            SqlHandler.initBootstrapSql(pluginManager.getClass(), environment, "core");
         }
         return pluginManager;
     }
