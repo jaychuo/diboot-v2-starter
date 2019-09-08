@@ -32,16 +32,19 @@ public class SqlHandler {
     private static final Logger logger = LoggerFactory.getLogger(SqlHandler.class);
 
     // 数据字典SQL
-    public static final String DICTIONARY_SQL = "SELECT id FROM ${SCHEMA}.dictionary WHERE id=0";
+    private static final String DICTIONARY_SQL = "SELECT id FROM ${SCHEMA}.dictionary WHERE id=0";
+    private static final String DICTIONARY_SQL_ORACLE = "SELECT \"id\" FROM \"dictionary\" WHERE \"id\"=0";
 
     private static String dbType;
     private static String CURRENT_SCHEMA = null;
+    private static Environment environment;
 
     /**
      * 初始化
-     * @param environment
+     * @param env
      */
-    public static void init(Environment environment) {
+    public static void init(Environment env) {
+        environment = env;
         String jdbcUrl = environment.getProperty("spring.datasource.url");
         dbType = SqlHandler.extractDatabaseType(jdbcUrl);
     }
@@ -56,6 +59,15 @@ public class SqlHandler {
         }
         String sqlPath = "META-INF/sql/init-"+module+"-"+dbType+".sql";
         extractAndExecuteSqls(inst, sqlPath);
+    }
+
+    /**
+     * 检查是否dictionary表已存在
+     * @return
+     */
+    public static boolean checkIsDictionaryTableExists(){
+        String sql = DbType.ORACLE.getDb().equals(dbType)? DICTIONARY_SQL_ORACLE : DICTIONARY_SQL;
+        return checkIsTableExists(sql);
     }
 
     /**
@@ -140,6 +152,9 @@ public class SqlHandler {
             if(dbType.equals(DbType.SQL_SERVER.getDb())){
                 sqlStatement = S.replace(sqlStatement, "${SCHEMA}", getSqlServerCurrentSchema());
             }
+            else if(dbType.equals(DbType.ORACLE.getDb())){
+                sqlStatement = S.replace(sqlStatement, "${SCHEMA}", getOracleCurrentSchema());
+            }
             else{
                 sqlStatement = S.replace(sqlStatement, "${SCHEMA}.", "");
             }
@@ -164,7 +179,7 @@ public class SqlHandler {
                 }
             }
             catch (Exception e){
-                logger.error("初始化SQL执行异常，请检查或手动执行", e);
+                logger.error("初始化SQL执行异常，请检查或手动执行。SQL="+S.substring(sqlStatement, 0, 60), e);
             }
         }
         return true;
@@ -267,6 +282,28 @@ public class SqlHandler {
         }
         return CURRENT_SCHEMA;
     }
+    /**
+     * 获取当前schema，oracle默认schema=当前user
+     * @return
+     */
+    public static String getOracleCurrentSchema(){
+        if(CURRENT_SCHEMA == null){
+            // 先查找配置中是否存在指定
+            String alterSessionSql = environment.getProperty("spring.datasource.hikari.connection-init-sql");
+            if(V.notEmpty(alterSessionSql) && S.containsIgnoreCase(alterSessionSql," current_schema=")){
+                CURRENT_SCHEMA = S.substringAfterLast(alterSessionSql, "=");
+            }
+            if(CURRENT_SCHEMA == null){
+                // 然后默认为当前用户名大写
+                String username = environment.getProperty("spring.datasource.username");
+                if(username != null){
+                    CURRENT_SCHEMA = username.toUpperCase();
+                }
+            }
+        }
+        return CURRENT_SCHEMA;
+    }
+
 
     /**
      * 查询SQL返回第一项
@@ -289,4 +326,11 @@ public class SqlHandler {
         return null;
     }
 
+    /**
+     * 获取数据库类型
+     * @return
+     */
+    public static String getDbType(){
+        return dbType;
+    }
 }

@@ -47,7 +47,7 @@ public class CoreAutoConfiguration{
         SqlHandler.init(environment);
         PluginManager pluginManager = new PluginManager() {};
         // 检查数据库字典是否已存在
-        if(coreProperties.isInitSql() && SqlHandler.checkIsTableExists(SqlHandler.DICTIONARY_SQL) == false){
+        if(coreProperties.isInitSql() && SqlHandler.checkIsDictionaryTableExists() == false){
             SqlHandler.initBootstrapSql(pluginManager.getClass(), environment, "core");
         }
         return pluginManager;

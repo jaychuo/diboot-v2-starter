@@ -5,12 +5,12 @@ create table dictionary (
      type                 VARCHAR(50)          not null,
      item_name            VARCHAR(100)         not null,
      item_value           VARCHAR(100)         null,
-     comment              VARCHAR(200)         null,
+     description          VARCHAR(100)         null,
      extdata              VARCHAR(200)         null,
      sort_id              smallint             not null default 99,
-     system               smallint             not null default 0,
-     editable             smallint             not null default 1,
-     deleted              smallint             not null default 0,
+     is_deletable         smallint             not null default 0,
+     is_editable          smallint             not null default 1,
+     is_deleted           smallint             not null default 0,
      create_time          DATE                 not null default CURRENT_TIMESTAMP,
      constraint PK_dictionary primary key (id)
 );
@@ -20,11 +20,11 @@ comment on column dictionary.parent_id is '父ID';
 comment on column dictionary.type is '字典类型';
 comment on column dictionary.item_name is '显示名';
 comment on column dictionary.item_value is '存储值';
-comment on column dictionary.comment is '备注';
+comment on column dictionary.description is '描述说明';
 comment on column dictionary.extdata is '扩展JSON';
 comment on column dictionary.sort_id is '排序号';
-comment on column dictionary.system is '是否系统预置';
-comment on column dictionary.editable is '是否可编辑';
+comment on column dictionary.editable is '是否可改';
+comment on column dictionary.is_deletable is '是否可删';
 comment on column dictionary.deleted is '删除标记';
 comment on column dictionary.create_time is '创建时间';
 
