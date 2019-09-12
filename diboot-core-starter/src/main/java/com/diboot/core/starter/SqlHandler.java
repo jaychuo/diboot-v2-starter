@@ -15,12 +15,13 @@ import org.springframework.core.env.Environment;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * SQL处理类
@@ -33,7 +34,6 @@ public class SqlHandler {
 
     // 数据字典SQL
     private static final String DICTIONARY_SQL = "SELECT id FROM ${SCHEMA}.dictionary WHERE id=0";
-    private static final String DICTIONARY_SQL_ORACLE = "SELECT \"id\" FROM \"dictionary\" WHERE \"id\"=0";
 
     private static String dbType;
     private static String CURRENT_SCHEMA = null;
@@ -66,8 +66,7 @@ public class SqlHandler {
      * @return
      */
     public static boolean checkIsDictionaryTableExists(){
-        String sql = DbType.ORACLE.getDb().equals(dbType)? DICTIONARY_SQL_ORACLE : DICTIONARY_SQL;
-        return checkIsTableExists(sql);
+        return checkIsTableExists(DICTIONARY_SQL);
     }
 
     /**
@@ -259,6 +258,10 @@ public class SqlHandler {
         String dbName = dbType.getDb();
         if(dbName.startsWith(DbType.SQL_SERVER.getDb()) && !dbName.equals(DbType.SQL_SERVER.getDb())){
             dbName = DbType.SQL_SERVER.getDb();
+        }
+        // MariaDB按MySQL处理逻辑支持
+        else if(dbType.equals(DbType.MARIADB)){
+            dbName = DbType.MYSQL.getDb();
         }
         return dbName;
     }

@@ -34,28 +34,57 @@
         <dependency>
             <groupId>com.diboot</groupId>
             <artifactId>diboot-core</artifactId>
-            <version>2.0.2</version>
+            <version>2.0.3</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>3.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.60</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.60</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8.1</version>
+        </dependency>
 
     </dependencies>
 
-    <!--
     <repositories>
         <repository>
-            <id>aliyun-repository</id>
-            <name>aliyun repository</name>
-            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <id>Diboot-Repos</id>
+            <name>Diboot Repository</name>
+            <url>http://maven.diboot.com/repository/diboot</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
         <repository>
-            <id>dibootRepository</id>
-            <name>Diboot Repository</name>
-            <url>http://maven.diboot.com/repository/diboot/</url>
+            <id>Aliyun-Repos</id>
+            <name>Aliyun Repository</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
         </repository>
     </repositories>
-    -->
+
 </project>

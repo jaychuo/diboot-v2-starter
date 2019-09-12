@@ -23,9 +23,9 @@ comment on column dictionary.item_value is '存储值';
 comment on column dictionary.description is '描述说明';
 comment on column dictionary.extdata is '扩展JSON';
 comment on column dictionary.sort_id is '排序号';
-comment on column dictionary.editable is '是否可改';
+comment on column dictionary.is_editable is '是否可改';
 comment on column dictionary.is_deletable is '是否可删';
-comment on column dictionary.deleted is '删除标记';
+comment on column dictionary.is_deleted is '删除标记';
 comment on column dictionary.create_time is '创建时间';
 
 comment on table dictionary is '数据字典';
