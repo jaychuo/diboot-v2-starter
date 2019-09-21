@@ -259,10 +259,6 @@ public class SqlHandler {
         if(dbName.startsWith(DbType.SQL_SERVER.getDb()) && !dbName.equals(DbType.SQL_SERVER.getDb())){
             dbName = DbType.SQL_SERVER.getDb();
         }
-        // MariaDB按MySQL处理逻辑支持
-        else if(dbType.equals(DbType.MARIADB)){
-            dbName = DbType.MYSQL.getDb();
-        }
         return dbName;
     }
 
