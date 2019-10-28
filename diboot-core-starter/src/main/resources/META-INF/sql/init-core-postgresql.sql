@@ -1,17 +1,17 @@
 -- 建表
 create table dictionary (
      id                   serial not null,
-     parent_id            int              not null,
-     type                 VARCHAR(50)          not null,
-     item_name            VARCHAR(100)         not null,
-     item_value           VARCHAR(100)         null,
-     description          VARCHAR(100)         null,
-     extdata              VARCHAR(200)         null,
-     sort_id              smallint             not null default 99,
-     is_deletable         smallint             not null default 0,
-     is_editable          smallint             not null default 1,
-     is_deleted           smallint             not null default 0,
-     create_time          DATE                 not null default CURRENT_TIMESTAMP,
+     parent_id            int            not null,
+     type                 VARCHAR(50)    not null,
+     item_name            VARCHAR(100)  not null,
+     item_value           VARCHAR(100)  null,
+     description          VARCHAR(100)  null,
+     extdata              VARCHAR(200)  null,
+     sort_id              SMALLINT      not null default 99,
+     is_deletable         BOOLEAN       not null default FALSE,
+     is_editable          BOOLEAN       not null default TRUE,
+     is_deleted           BOOLEAN       not null default FALSE,
+     create_time          DATE          not null default CURRENT_TIMESTAMP,
      constraint PK_dictionary primary key (id)
 );
 -- 添加备注
