@@ -34,7 +34,7 @@ public class SqlHandler {
 
     // 数据字典SQL
     private static final String DICTIONARY_SQL = "SELECT id FROM ${SCHEMA}.dictionary WHERE id=0";
-
+    private static final String MYBATIS_PLUS_SCHEMA_CONFIG = "mybatis-plus.global-config.db-config.schema";
     private static String dbType;
     private static String CURRENT_SCHEMA = null;
     private static Environment environment;
@@ -274,6 +274,9 @@ public class SqlHandler {
             if(firstValue != null){
                 CURRENT_SCHEMA = (String)firstValue;
             }
+            if(CURRENT_SCHEMA == null){
+                CURRENT_SCHEMA = environment.getProperty(MYBATIS_PLUS_SCHEMA_CONFIG);
+            }
             // dbo schema兜底
             if(CURRENT_SCHEMA == null){
                 CURRENT_SCHEMA = "dbo";
@@ -291,6 +294,9 @@ public class SqlHandler {
             String alterSessionSql = environment.getProperty("spring.datasource.hikari.connection-init-sql");
             if(V.notEmpty(alterSessionSql) && S.containsIgnoreCase(alterSessionSql," current_schema=")){
                 CURRENT_SCHEMA = S.substringAfterLast(alterSessionSql, "=");
+            }
+            if(CURRENT_SCHEMA == null){
+                CURRENT_SCHEMA = environment.getProperty(MYBATIS_PLUS_SCHEMA_CONFIG);
             }
             if(CURRENT_SCHEMA == null){
                 // 然后默认为当前用户名大写
