@@ -1,17 +1,17 @@
 -- 建表
 create table ${SCHEMA}.dictionary (
-    id                 number(20) generated as identity ( start with 10000 nocycle noorder),
-    parent_id          INTEGER               not null,
+    id                 NUMBER(20) generated as identity ( start with 10000 nocycle noorder),
+    parent_id          NUMBER(20)           default 0  not null,
     type               VARCHAR2(50)          not null,
     item_name          VARCHAR2(100)         not null,
     item_value         VARCHAR2(100),
     description        VARCHAR2(100),
     extdata            VARCHAR2(200),
-    sort_id            SMALLINT             default 99  not null,
-    is_deletable          SMALLINT             default 0  not null,
-    is_editable           SMALLINT          default 1  not null,
-    is_deleted            SMALLINT          default 0  not null,
-    create_time        TIMESTAMP            default CURRENT_TIMESTAMP  not null,
+    sort_id            SMALLINT           default 99  not null,
+    is_deletable       NUMBER(1)          default 0  not null,
+    is_editable        NUMBER(1)          default 1  not null,
+    is_deleted         NUMBER(1)          default 0  not null,
+    create_time        TIMESTAMP          default CURRENT_TIMESTAMP  not null,
     constraint PK_dictionary primary key (id)
 );
 -- 添加备注
