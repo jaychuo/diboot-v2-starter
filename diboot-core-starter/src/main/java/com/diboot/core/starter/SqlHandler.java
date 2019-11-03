@@ -178,7 +178,7 @@ public class SqlHandler {
                 }
             }
             catch (Exception e){
-                logger.error("初始化SQL执行异常，请检查或手动执行。SQL="+S.substring(sqlStatement, 0, 60), e);
+                logger.error("初始化SQL执行异常，请检查或手动执行。SQL => "+sqlStatement, e);
             }
         }
         return true;
