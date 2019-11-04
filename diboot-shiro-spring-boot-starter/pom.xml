@@ -65,48 +65,10 @@
 
     <repositories>
         <repository>
-            <id>Diboot-Repos</id>
-            <name>Diboot Repository</name>
-            <url>http://maven.diboot.com/repository/diboot</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
             <id>Aliyun-Repos</id>
             <name>Aliyun Repository</name>
             <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
         </repository>
     </repositories>
-
-    <distributionManagement>
-        <repository>
-            <id>diboot</id>
-            <name>Dibo diboot repository.</name>
-            <url>http://47.100.3.65:8081/repository/diboot/</url>
-
-        </repository>
-    </distributionManagement>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
 
 </project>
