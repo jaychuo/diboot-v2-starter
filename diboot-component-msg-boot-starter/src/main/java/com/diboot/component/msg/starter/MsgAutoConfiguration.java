@@ -25,11 +25,11 @@ public class MsgAutoConfiguration {
     Environment environment;
 
     @Bean
-    @ConditionalOnMissingBean(PluginManager.class)
-    public PluginManager pluginManager(){
+    @ConditionalOnMissingBean(MsgPluginManager.class)
+    public MsgPluginManager msgPluginManager(){
         // 初始化SCHEMA
         SqlHandler.init(environment);
-        PluginManager pluginManager = new PluginManager() {};
+        MsgPluginManager pluginManager = new MsgPluginManager() {};
         // 检查数据库字典是否已存在
         if(fileProperties.isInitSql() && SqlHandler.checkIsMessageTableExists() == false && SqlHandler.checkIsMessageTmplTableExists() == false){
             SqlHandler.initBootstrapSql(pluginManager.getClass(), environment, "msg");

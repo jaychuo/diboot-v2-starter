@@ -42,11 +42,11 @@ public class CoreAutoConfiguration{
     CoreProperties coreProperties;
 
     @Bean
-    @ConditionalOnMissingBean(PluginManager.class)
-    public PluginManager pluginManager(){
+    @ConditionalOnMissingBean(CorePluginManager.class)
+    public CorePluginManager corePluginManager(){
         // 初始化SCHEMA
         SqlHandler.init(environment);
-        PluginManager pluginManager = new PluginManager() {};
+        CorePluginManager pluginManager = new CorePluginManager() {};
         // 检查数据库字典是否已存在
         if(coreProperties.isInitSql() && SqlHandler.checkIsDictionaryTableExists() == false){
             SqlHandler.initBootstrapSql(pluginManager.getClass(), environment, "core");

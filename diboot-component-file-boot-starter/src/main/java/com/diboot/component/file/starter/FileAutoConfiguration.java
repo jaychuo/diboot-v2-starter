@@ -25,11 +25,11 @@ public class FileAutoConfiguration {
     Environment environment;
 
     @Bean
-    @ConditionalOnMissingBean(PluginManager.class)
-    public PluginManager pluginManager(){
+    @ConditionalOnMissingBean(FilePluginManager.class)
+    public FilePluginManager filePluginManager(){
         // 初始化SCHEMA
         SqlHandler.init(environment);
-        PluginManager pluginManager = new PluginManager() {};
+        FilePluginManager pluginManager = new FilePluginManager() {};
         // 检查数据库字典是否已存在
         if(fileProperties.isInitSql() && SqlHandler.checkIsFileTableExists() == false){
             SqlHandler.initBootstrapSql(pluginManager.getClass(), environment, "file");

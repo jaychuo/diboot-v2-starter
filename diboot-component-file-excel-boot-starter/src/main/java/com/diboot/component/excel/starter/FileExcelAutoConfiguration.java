@@ -1,5 +1,7 @@
 package com.diboot.component.excel.starter;
 
+import com.diboot.component.file.starter.FileAutoConfiguration;
+import com.diboot.component.file.starter.FilePluginManager;
 import com.diboot.core.plugin.PluginManager;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -16,7 +18,7 @@ import org.springframework.core.env.Environment;
 @EnableConfigurationProperties(FileExcelProperties.class)
 @ComponentScan(basePackages = {"com.diboot.component.excel"})
 @MapperScan(basePackages = {"com.diboot.component.excel.mapper"})
-public class FileExcelAutoConfiguration {
+public class FileExcelAutoConfiguration extends FileAutoConfiguration {
 
     @Autowired
     FileExcelProperties fileProperties;
@@ -25,11 +27,11 @@ public class FileExcelAutoConfiguration {
     Environment environment;
 
     @Bean
-    @ConditionalOnMissingBean(PluginManager.class)
-    public PluginManager pluginManager(){
+    @ConditionalOnMissingBean(FileExcelPluginManager.class)
+    public FileExcelPluginManager fileExcelPluginManager(){
         // 初始化SCHEMA
         SqlHandler.init(environment);
-        PluginManager pluginManager = new PluginManager() {};
+        FileExcelPluginManager pluginManager = new FileExcelPluginManager() {};
         // 检查数据库字典是否已存在
         if(fileProperties.isInitSql() && SqlHandler.checkIsExcelColumnTableExists() == false && SqlHandler.checkIsExcelImportRecordTableExists() == false){
             SqlHandler.initBootstrapSql(pluginManager.getClass(), environment, "file-excel");
