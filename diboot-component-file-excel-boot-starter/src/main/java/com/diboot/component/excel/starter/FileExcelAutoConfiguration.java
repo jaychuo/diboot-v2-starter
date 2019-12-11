@@ -1,8 +1,6 @@
 package com.diboot.component.excel.starter;
 
 import com.diboot.component.file.starter.FileAutoConfiguration;
-import com.diboot.component.file.starter.FilePluginManager;
-import com.diboot.core.plugin.PluginManager;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;

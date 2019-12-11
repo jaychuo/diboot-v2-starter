@@ -5,11 +5,4 @@ out/
 gradle/
 *.iml
 target/
-diboot-devtools-spring-boot-starter-xbuild/src/
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
 application.properties
