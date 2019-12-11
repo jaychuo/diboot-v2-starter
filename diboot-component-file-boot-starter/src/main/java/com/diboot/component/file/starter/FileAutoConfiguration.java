@@ -1,6 +1,5 @@
 package com.diboot.component.file.starter;
 
-import com.diboot.core.plugin.PluginManager;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;

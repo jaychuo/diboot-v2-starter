@@ -3,8 +3,6 @@ package com.diboot.core.starter;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
-import com.diboot.core.plugin.PluginManager;
-import com.diboot.core.util.ContextHelper;
 import com.diboot.core.util.D;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
