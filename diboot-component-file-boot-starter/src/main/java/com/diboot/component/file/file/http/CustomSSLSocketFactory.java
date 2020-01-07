@@ -88,6 +88,7 @@ public class CustomSSLSocketFactory extends SSLSocketFactory {
             return new DefaultHttpClient(ccm, params);
         }
         catch (Exception e) {
+            logger.error("创建HttpClient失败", e);
             return null;
         }
     }

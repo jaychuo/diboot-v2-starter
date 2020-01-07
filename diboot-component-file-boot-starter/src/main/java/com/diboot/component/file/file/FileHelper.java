@@ -407,6 +407,7 @@ public class FileHelper{
 				return true;
 			}
 			catch (IOException e) {
+				logger.error("创建文件夹失败", e);
 				return false;
 			}
 		}

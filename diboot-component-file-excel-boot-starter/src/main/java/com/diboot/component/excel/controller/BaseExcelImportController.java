@@ -231,6 +231,7 @@ public abstract class BaseExcelImportController <T extends BaseExcelDataEntity> 
         try {
             dataList = EasyExcelHelper.simpleRead(FileHelper.getFileStorageDirectory() + path, getExcelDataClass(), getExcelDataListener(), isPreview);
         } catch (Exception e) {
+            logger.error("解析excel文件失败", e);
             throw new Exception("解析excel文件失败");
         }
         if(V.notEmpty(getExcelDataListener().getErrorMsgs())){
