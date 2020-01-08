@@ -8,9 +8,9 @@ create table ${SCHEMA}.dictionary (
    description          varchar(100)         null,
    extdata              varchar(200)         null,
    sort_id              smallint             not null default 99,
-   is_deletable        smallint             not null default 0,
-   is_editable          smallint             not null default 1,
-   is_deleted           smallint             not null default 0,
+   is_deletable        tinyint             not null default 0,
+   is_editable          tinyint             not null default 1,
+   is_deleted           tinyint             not null default 0,
    create_time          datetime             not null default CURRENT_TIMESTAMP,
    constraint PK_dictionary primary key (id)
 );
