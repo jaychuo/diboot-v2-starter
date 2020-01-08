@@ -114,7 +114,7 @@ public abstract class BaseExcelDataListener <T extends BaseExcelDataEntity, E ex
         try {
             excelColumnList = getExcelColumnList(getModelClass().getSimpleName());
         } catch (Exception e) {
-            logger.error("获取表格列定义失败");
+            logger.error("获取表格列定义失败", e);
             errorMsgs.add("获取表格列定义失败");
             return;
         }

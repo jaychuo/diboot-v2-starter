@@ -5,8 +5,13 @@ import com.alibaba.excel.enums.CellDataTypeEnum;
 import com.alibaba.excel.metadata.CellData;
 import com.alibaba.excel.metadata.GlobalConfiguration;
 import com.alibaba.excel.metadata.property.ExcelContentProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IntegerConverter implements Converter<Integer> {
+
+    private static final Logger log = LoggerFactory.getLogger(IntegerConverter.class);
+
     @Override
     public Class supportJavaTypeKey() {
         return Integer.class;
@@ -24,6 +29,7 @@ public class IntegerConverter implements Converter<Integer> {
         try {
             value = cellData.getNumberValue().intValue();
         } catch (Exception e) {
+            log.error("["+colName+"]列数据格式有误，请填写正确的整型数据", e);
             throw new Exception("["+colName+"]列数据格式有误，请填写正确的整型数据");
         }
         return value;

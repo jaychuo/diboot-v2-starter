@@ -7,10 +7,14 @@ import com.alibaba.excel.metadata.GlobalConfiguration;
 import com.alibaba.excel.metadata.property.ExcelContentProperty;
 import com.alibaba.excel.util.DateUtils;
 import org.apache.poi.ss.usermodel.DateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
 public class DateConverter implements Converter<Date> {
+    private static final Logger log = LoggerFactory.getLogger(DateConverter.class);
+
     @Override
     public Class supportJavaTypeKey() {
         return Date.class;
@@ -29,6 +33,7 @@ public class DateConverter implements Converter<Date> {
             value = DateUtil.getJavaDate(cellData.getNumberValue().doubleValue(),
                     globalConfiguration.getUse1904windowing(), null);
         } catch (Exception e) {
+            log.error("["+colName+"]列数据格式有误，请填写正确的时间类型数据", e);
             throw new Exception("["+colName+"]列数据格式有误，请填写正确的时间类型数据");
          }
         return value;
