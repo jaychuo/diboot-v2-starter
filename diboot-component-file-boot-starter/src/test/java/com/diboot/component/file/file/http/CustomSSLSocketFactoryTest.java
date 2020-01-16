@@ -1,6 +1,5 @@
-package test.java;
+package com.diboot.component.file.file.http;
 
-import com.diboot.component.file.file.http.CustomSSLSocketFactory;
 import junit.framework.TestCase;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
@@ -20,7 +19,7 @@ import java.io.IOException;
  * dengxiaojie
  * wechat:haizei508953
  */
-public class CustomSSLSocketFactoryTest  extends TestCase {
+public class CustomSSLSocketFactoryTest extends TestCase {
 
     public void testRequest() {
         try {
