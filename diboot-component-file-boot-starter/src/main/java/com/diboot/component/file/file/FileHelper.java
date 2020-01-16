@@ -33,7 +33,9 @@ import java.util.Map;
  * 文件操作辅助类
  * @author Mazc
  */
+@SuppressWarnings("unchecked")
 public class FileHelper{
+	public static final String POINT = ".";
 	private static final Logger logger = LoggerFactory.getLogger(FileHelper.class);
 
 	/**
@@ -70,6 +72,9 @@ public class FileHelper{
 	 * 默认contextType
 	 */
 	private static final String DEFAULT_CONTEXT_TYPE = "application/octet-stream";
+	public static final String HTTP = "http";
+	public static final String SLASH = "/";
+	public static final String QUESTION_MARK = "?";
 
 	/***
 	 * 文件扩展名-ContentType的对应关系
@@ -129,6 +134,7 @@ public class FileHelper{
 	 * @param ext
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static boolean isValidFileExt(String ext){
 		return !DANGER_FILE_SUFFIX.contains("|"+ext.toLowerCase());
 	}
@@ -138,6 +144,7 @@ public class FileHelper{
 	 * @param ext
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static boolean isImage(String ext){
 		return VALID_IMAGE_SUFFIX.contains("|"+ext.toLowerCase()+"|");
 	}
@@ -147,6 +154,7 @@ public class FileHelper{
 	 * @param fileName
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static boolean isExcel(String fileName){
 		String ext = getFileExtByName(fileName);
 		return EXCEL_SUFFIX.contains("|"+ext.toLowerCase()+"|");
@@ -206,6 +214,7 @@ public class FileHelper{
 	 * 保存图片
 	 * @param file 上传文件
 	 */
+	@SuppressWarnings("unchecked")
 	public static String saveImage(MultipartFile file){
 		String fileName = file.getOriginalFilename();
 		String ext = fileName.substring(fileName.lastIndexOf(".")+1);
@@ -220,6 +229,7 @@ public class FileHelper{
 	 * @param reserve 是否保留原图片
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static String saveImage(File file, String imgName, boolean reserve){
 		// 生成图片路径
 		String accessPath = getImageStoragePath(imgName);
@@ -272,6 +282,7 @@ public class FileHelper{
 	 * @param file 上传文件
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static String saveFile(MultipartFile file){
 		String fileName = file.getOriginalFilename();
 		String ext = fileName.substring(fileName.lastIndexOf(".")+1);
@@ -286,6 +297,7 @@ public class FileHelper{
 	 * @param reserve 保留原文件
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static String saveFile(File file, String fileName, boolean reserve){
 		// 生成文件路径
 		String accessPath = getFileStoragePath(fileName);
@@ -314,11 +326,11 @@ public class FileHelper{
 	 * @return
 	 */
 	public static String getFileExtByName(String fileName){
-		if(fileName.startsWith("http") && fileName.contains("/")){
+		if(fileName.startsWith(HTTP) && fileName.contains(SLASH)){
 			fileName = getFileName(fileName);
 		}
-		if(fileName.lastIndexOf(".") > 0){
-			return fileName.substring(fileName.lastIndexOf(".")+1).toLowerCase();
+		if(fileName.lastIndexOf(POINT) > 0){
+			return fileName.substring(fileName.lastIndexOf(POINT)+1).toLowerCase();
 		}
 		logger.warn("检测到没有后缀的文件名:" + fileName);
 		return "";
@@ -331,7 +343,7 @@ public class FileHelper{
 	 */
 	public static String getImageStoragePath(String fileName){
 		StringBuilder sb = new StringBuilder();
-		sb.append(PATH_IMG).append("/").append(getYearMonth()).append("/").append(fileName);
+		sb.append(PATH_IMG).append(SLASH).append(getYearMonth()).append(SLASH).append(fileName);
 		return sb.toString();
 	}
 	
@@ -351,13 +363,14 @@ public class FileHelper{
 	 * @param category
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static String getAudioStoragePath(String category, String name) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(PATH_AUDIO);
 		if(StringUtils.isNotBlank(category)){
-			sb.append("/").append(category);
+			sb.append(SLASH).append(category);
 		}
-		sb.append("/").append(getYearMonthDay()).append("/").append(name);
+		sb.append(SLASH).append(getYearMonthDay()).append(SLASH).append(name);
 		return sb.toString();
 	}
 	
@@ -365,19 +378,20 @@ public class FileHelper{
 	 * 获取文件的全路径
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static String getFullFilePath(String filePath){
 		return getFileStorageDirectory()+filePath;
 	}
 	
 	/**
 	 * 根据文件URL解析出其文件名
-	 * @param fileURL
+	 * @param fileUrl
 	 * @return
 	 */
-	public static String getFileName(String fileURL){
-		String temp = StringUtils.substring(fileURL, fileURL.lastIndexOf("/")+1);
-		if(StringUtils.contains(fileURL, "?")){
-			temp = StringUtils.substring(temp, 0, temp.lastIndexOf("?"));
+	public static String getFileName(String fileUrl){
+		String temp = StringUtils.substring(fileUrl, fileUrl.lastIndexOf(SLASH)+1);
+		if(StringUtils.contains(fileUrl, QUESTION_MARK)){
+			temp = StringUtils.substring(temp, 0, temp.lastIndexOf(QUESTION_MARK));
 		}
 		return temp; 
 	}
@@ -399,7 +413,7 @@ public class FileHelper{
 	 * @return
 	 */
 	public static boolean makeDirectory(String dirPath){
-		String imageDirectory = StringUtils.substringBeforeLast(dirPath, "/");
+		String imageDirectory = StringUtils.substringBeforeLast(dirPath, SLASH);
 		File dir = new File(imageDirectory);
 		if(!dir.exists()){
 			try {
@@ -419,6 +433,7 @@ public class FileHelper{
 	 * @param imgUrl
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static String generateThumbnail(String imgUrl, int width, int height){
 		String file = imgUrl.substring(imgUrl.indexOf("/img/"));
 		String imageFileDirectory = getFileStorageDirectory() + file;
@@ -441,6 +456,7 @@ public class FileHelper{
 	 * @param response
 	 * @throws Exception
 	 */
+	@SuppressWarnings("unchecked")
 	public static void downloadLocalFile(String path, HttpServletRequest request, HttpServletResponse response) throws Exception{
 		request.setCharacterEncoding("UTF-8");  
         String downloadPath = path;
@@ -480,6 +496,7 @@ public class FileHelper{
 	 * @param targetFilePath
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static boolean downloadRemoteFile(String fileUrl, String targetFilePath) {
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		HttpGet httpGet = new HttpGet(fileUrl);
@@ -518,6 +535,7 @@ public class FileHelper{
 	 * @param
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static boolean downloadRemoteFileViaHttps(String fileUrl, String targetFilePath) {
 		HttpClient httpClient = CustomSSLSocketFactory.newHttpClient();
 		try {
@@ -551,6 +569,7 @@ public class FileHelper{
 	 * 删除文件
 	 * @param fileStoragePath
 	 */
+	@SuppressWarnings("unchecked")
 	public static void deleteFile(String fileStoragePath) {
 		File wavFile = new File(fileStoragePath);
 		if(wavFile.exists()){
@@ -598,6 +617,7 @@ public class FileHelper{
 	 * @param fileInputName
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static List<MultipartFile> getFilesFromRequest(HttpServletRequest request, String... fileInputName){
 		// 解析上传文件
 		boolean isMultipart = ServletFileUpload.isMultipartContent(request);
@@ -621,6 +641,7 @@ public class FileHelper{
 	 * @param fileInputName
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static MultipartFile getFileFromRequest(HttpServletRequest request, String... fileInputName){
 		// 解析上传文件
 		boolean isMultipart = ServletFileUpload.isMultipartContent(request);
