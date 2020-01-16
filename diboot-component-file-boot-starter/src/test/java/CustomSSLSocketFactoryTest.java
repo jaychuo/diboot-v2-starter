@@ -1,6 +1,7 @@
-package test;
+package test.java;
 
 import com.diboot.component.file.file.http.CustomSSLSocketFactory;
+import junit.framework.TestCase;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
@@ -11,18 +12,16 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.dom4j.Document;
 import org.dom4j.io.SAXReader;
-import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
  * dengxiaojie
- * wx:haizei508953
+ * wechat:haizei508953
  */
-public class CustomSSLSocketFactoryTest  {
+public class CustomSSLSocketFactoryTest  extends TestCase {
 
-    @Test
     public void testRequest() {
         try {
             // 创建SAXReader对象
