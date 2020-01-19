@@ -27,49 +27,78 @@ import java.util.concurrent.ConcurrentHashMap;
  * @auther wangyl
  * @date 2019-10-9
  */
-@Component
-public abstract class BaseExcelDataListener <T extends BaseExcelDataEntity, E extends BaseEntity> extends AnalysisEventListener<T> {
+public abstract class BaseExcelDataListener<T extends BaseExcelDataEntity, E extends BaseEntity> extends AnalysisEventListener<T> {
     private static final Logger logger = LoggerFactory.getLogger(BaseExcelDataListener.class);
 
-    @Autowired
-    protected ExcelColumnService excelColumnService;
+    private ExcelColumnService excelColumnService;
 
-    private Map<Integer, String> headMap;//解析出的excel表头
-    private List<T> dataList = new ArrayList<>();//解析后的数据实体list
-    private List<E> entityList = new ArrayList<>();//可存入数据库的数据实体list
-    private List<String> errorMsgs = new ArrayList<>();//错误日志
-    private boolean isPreview = false;//是否预览模式，默认否
-    private static Map<String, List<ExcelColumn>> excelColumnMap = null;//Excel列定义缓存
+    /**
+     * 解析出的excel表头
+     */
+    private Map<Integer, String> headMap;
 
-    /*
-    * 当前一行数据解析成功后的操作
-    * */
+    /**
+     * 解析后的数据实体list
+     */
+    private List<T> dataList = new ArrayList<>();
+
+    /**
+     * 可存入数据库的数据实体list
+     */
+    private List<E> entityList = new ArrayList<>();
+
+    /**
+     * 上传过程重的错误信息
+     */
+    private List<String> errorMsgs = new ArrayList<>();
+
+    /**
+     * 是否预览模式，默认否
+     */
+    private boolean isPreview = false;
+
+    /**
+     * Excel列定义缓存
+     */
+    private static Map<String, List<ExcelColumn>> excelColumnMap = null;
+
+    /**
+     * 当前一行数据解析成功后的操作
+     *
+     * @param data
+     * @param context
+     */
     @Override
     public void invoke(T data, AnalysisContext context) {
         dataList.add(data);
     }
 
-    /*
-    * 所有数据解析成功后的操作
-    * */
+    /**
+     * 所有数据解析成功后的操作
+     *
+     * @param context
+     */
     @Override
     public void doAfterAllAnalysed(AnalysisContext context) {
-        if(isPreview){
+        if (isPreview) {
             return;
         }
-        checkHeader(headMap);//表头校验
-        checkDataList(dataList);//数据校验
-        List<String> errors = customVerify(dataList);//自定义数据校验
-        if(V.notEmpty(errors)){
+        //表头校验
+        checkHeader(headMap);
+        //数据校验
+        checkDataList(dataList);
+        //自定义数据校验
+        List<String> errors = customVerify(dataList);
+        if (V.notEmpty(errors)) {
             errorMsgs.addAll(errors);
         }
         try {
             convertToEntityList(dataList);
         } catch (Exception e) {
-            logger.error("excel数据转化失败",e);
+            logger.error("excel数据转化失败", e);
             errorMsgs.add("excel数据解析失败");
         }
-        if(V.notEmpty(errorMsgs)){
+        if (V.notEmpty(errorMsgs)) {
             return;
         }
         try {
@@ -80,35 +109,44 @@ public abstract class BaseExcelDataListener <T extends BaseExcelDataEntity, E ex
         }
     }
 
-    /*
-    * 在转换异常、获取其他异常下会调用本接口。
-    * 抛出异常则停止读取。如果这里不抛出异常则 继续读取下一行。
-    * */
+    /**
+     * 在转换异常、获取其他异常下会调用本接口。
+     * 抛出异常则停止读取。如果这里不抛出异常则 继续读取下一行。
+     *
+     * @param exception
+     * @param context
+     * @throws Exception
+     */
     @Override
     public void onException(Exception exception, AnalysisContext context) throws Exception {
         int currentRowNum = context.readRowHolder().getRowIndex();
         //数据类型转化异常
         if (exception instanceof ExcelDataConvertException) {
             logger.error("数据转化异常", exception);
-            errorMsgs.add("第"+currentRowNum+"行"+exception.getCause().getMessage());
-        }else{//其他异常
-            logger.error("出现暂未处理的异常：",exception);
+            errorMsgs.add("第" + currentRowNum + "行" + exception.getCause().getMessage());
+        } else {//其他异常
+            logger.error("出现暂未处理的异常：", exception);
             errorMsgs.add(exception.getMessage());
         }
     }
 
-    /*
-    * excel表头数据
-    * */
+    /**
+     * excel表头数据
+     *
+     * @param headMap
+     * @param context
+     */
     @Override
     public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-        logger.info("解析到一条表头数据：",JSON.toJSONString(headMap));
+        logger.error("解析到一条表头数据：", JSON.toJSONString(headMap));
         this.headMap = headMap;
     }
 
-    /*
+    /**
      * 校验表头
-     * */
+     *
+     * @param headMap
+     */
     private void checkHeader(Map<Integer, String> headMap) {
         List<ExcelColumn> excelColumnList = null;
         try {
@@ -118,26 +156,28 @@ public abstract class BaseExcelDataListener <T extends BaseExcelDataEntity, E ex
             errorMsgs.add("获取表格列定义失败");
             return;
         }
-        if(V.isEmpty(headMap) || V.isEmpty(excelColumnList)){
+        if (V.isEmpty(headMap) || V.isEmpty(excelColumnList)) {
             logger.error("请设置excel表头");
             errorMsgs.add("请设置excel表头");
             return;
         }
-        if(headMap.size() != excelColumnList.size()){
+        if (headMap.size() != excelColumnList.size()) {
             logger.error("Excel文件中的标题列数与期望不符");
-            errorMsgs.add("Excel文件中的标题列数与预期不符,期望为"+excelColumnList.size()+"列");
+            errorMsgs.add("Excel文件中的标题列数与预期不符,期望为" + excelColumnList.size() + "列");
             return;
         }
-        for(ExcelColumn excelColumn : excelColumnList){
-            if(V.notEquals(excelColumn.getColName(), headMap.get(excelColumn.getColIndex()-1))){
-                errorMsgs.add("标题名:["+headMap.get(excelColumn.getColIndex()-1)+"]与预期不符，请改为["+excelColumn.getColName()+"]");
+        for (ExcelColumn excelColumn : excelColumnList) {
+            if (V.notEquals(excelColumn.getColName(), headMap.get(excelColumn.getColIndex() - 1))) {
+                errorMsgs.add("标题名:[" + headMap.get(excelColumn.getColIndex() - 1) + "]与预期不符，请改为[" + excelColumn.getColName() + "]");
             }
         }
     }
 
-    /*
+    /**
      * 校验数据实体list
-     * */
+     *
+     * @param dataList
+     */
     private void checkDataList(List<T> dataList) {
         List<ExcelColumn> excelColumnList = null;
         try {
@@ -147,49 +187,62 @@ public abstract class BaseExcelDataListener <T extends BaseExcelDataEntity, E ex
             errorMsgs.add("获取表格列定义失败");
             return;
         }
-        if(V.isEmpty(excelColumnList)){
+        if (V.isEmpty(excelColumnList)) {
             logger.error("获取表格列定义为空");
             errorMsgs.add("获取表格列定义为空");
             return;
         }
-        if(V.notEmpty(dataList)){
-            for(int i=0;i<dataList.size();i++){
-                checkData(dataList.get(i), i+1,excelColumnList);
+        if (V.notEmpty(dataList)) {
+            for (int i = 0; i < dataList.size(); i++) {
+                checkData(dataList.get(i), i + 1, excelColumnList);
             }
         }
     }
 
-    /*
+    /**
      * 校验数据实体
-     * */
+     *
+     * @param data
+     * @param currentRowNum
+     * @param excelColumnList
+     */
     private void checkData(T data, Integer currentRowNum, List<ExcelColumn> excelColumnList) {
-        if(V.notEmpty(excelColumnList)){
-            for(ExcelColumn excelColumn : excelColumnList){
-                String value = BeanUtils.getStringProperty(data,excelColumn.getModelField());
+        if (V.notEmpty(excelColumnList)) {
+            for (ExcelColumn excelColumn : excelColumnList) {
+                String value = BeanUtils.getStringProperty(data, excelColumn.getModelField());
                 String error = V.validate(value, excelColumn.getValidation());
-                if(V.notEmpty(error)){
-                    errorMsgs.add("第"+currentRowNum+"行["+excelColumn.getColName()+"]"+error);
+                if (V.notEmpty(error)) {
+                    errorMsgs.add("第" + currentRowNum + "行[" + excelColumn.getColName() + "]" + error);
                 }
             }
         }
     }
 
-    /*
+    /**
      * 将解析后的数据实体list转化为可存入数据库的实体list
-     * */
-    private void convertToEntityList(List<T> dataList) throws Exception{
+     *
+     * @param dataList
+     * @throws Exception
+     */
+    private void convertToEntityList(List<T> dataList) throws Exception {
         entityList = BeanUtils.convertList(dataList, getModelClass());
     }
 
-    /*
+    /**
      * 自定义数据检验方式，例：数据重复性校验等,返回校验日志信息
-     * */
-    protected abstract List<String> customVerify(List<T> dataList) ;
+     *
+     * @param dataList
+     * @return
+     */
+    protected abstract List<String> customVerify(List<T> dataList);
 
-    /*
+    /**
      * 保存解析的数据到数据库
-     * */
-    private boolean saveData() throws Exception{
+     *
+     * @return
+     * @throws Exception
+     */
+    private boolean saveData() throws Exception {
         return getBusinessService().createEntities(entityList);
     }
 
@@ -198,6 +251,14 @@ public abstract class BaseExcelDataListener <T extends BaseExcelDataEntity, E ex
      * @return
      */
     protected abstract BaseService getBusinessService();
+
+    public ExcelColumnService getExcelColumnService() {
+        return excelColumnService;
+    }
+
+    public void setExcelColumnService(ExcelColumnService excelColumnService) {
+        this.excelColumnService = excelColumnService;
+    }
 
     /***
      * 获取Model类
@@ -208,12 +269,12 @@ public abstract class BaseExcelDataListener <T extends BaseExcelDataEntity, E ex
     /**
      * 加载表格列定义
      */
-    public List<ExcelColumn> getExcelColumnList(String modelClass) throws Exception{
-        if(excelColumnMap == null){
+    public List<ExcelColumn> getExcelColumnList(String modelClass) throws Exception {
+        if (excelColumnMap == null) {
             excelColumnMap = new ConcurrentHashMap<>();
         }
         List<ExcelColumn> list = excelColumnMap.get(modelClass);
-        if(list == null){
+        if (list == null) {
             // 构建查询时的排序定义，根据列序号进行升序排列
             LambdaQueryWrapper<ExcelColumn> wrapper = new LambdaQueryWrapper();
             wrapper.eq(ExcelColumn::getModelClass, modelClass)
@@ -224,15 +285,15 @@ public abstract class BaseExcelDataListener <T extends BaseExcelDataEntity, E ex
         return list;
     }
 
-    public List<T> getDataList(){
+    public List<T> getDataList() {
         return dataList;
     }
 
-    public List<E> getEntityList(){
+    public List<E> getEntityList() {
         return entityList;
     }
 
-    public List<String> getErrorMsgs(){
+    public List<String> getErrorMsgs() {
         return errorMsgs;
     }
 

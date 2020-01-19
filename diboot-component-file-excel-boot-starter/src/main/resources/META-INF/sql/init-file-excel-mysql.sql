@@ -2,6 +2,7 @@ CREATE TABLE `excel_column` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `model_class` varchar(50) NOT NULL COMMENT 'Java对象类',
   `model_field` varchar(50) NOT NULL COMMENT 'Java对象属性',
+  `model_field_label` varchar(50) NOT NULL COMMENT 'Java对象属性Label（字典属性才设置）',
   `col_name` varchar(50) NOT NULL COMMENT '列标题',
   `col_index` int(5) NOT NULL COMMENT '列索引',
   `data_type` varchar(20) DEFAULT NULL COMMENT '数据类型',

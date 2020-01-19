@@ -147,6 +147,7 @@ public abstract class BaseExcelImportController <T extends BaseExcelDataEntity> 
                 if(!success){
                     logger.warn("数据导入成功，但保存导入历史记录信息失败！fileUuid="+importUid);
                 }
+                this.afterSaveExcelData(request, getExcelDataListener().getEntityList());
             }else{
                 logger.error("数据上传失败:"+ S.join(getExcelDataListener().getErrorMsgs(), "<br/>"));
                 return new JsonResult(Status.FAIL_OPERATION, S.join(getExcelDataListener().getErrorMsgs(), "<br/>"));
@@ -176,6 +177,7 @@ public abstract class BaseExcelImportController <T extends BaseExcelDataEntity> 
                 if(!success){
                     logger.warn("数据导入成功，但保存导入历史记录信息失败！fileUuid="+importUid);
                 }
+                this.afterSaveExcelData(request, getExcelDataListener().getEntityList());
             }
             else{
                 logger.warn("数据导入成功，但无法导入历史记录信息: importUuid不存在！");
@@ -187,6 +189,14 @@ public abstract class BaseExcelImportController <T extends BaseExcelDataEntity> 
         }
         return new JsonResult(Status.OK);
     }
+
+    /**
+     * 执行后的操作
+     * @param request
+     * @param modelList
+     * @throws Exception
+     */
+    protected abstract void afterSaveExcelData(HttpServletRequest request, List<? extends BaseEntity> modelList) throws Exception;
 
     /**
      *  保存上传文件
@@ -235,7 +245,7 @@ public abstract class BaseExcelImportController <T extends BaseExcelDataEntity> 
             throw new Exception("解析excel文件失败");
         }
         if(V.notEmpty(getExcelDataListener().getErrorMsgs())){
-            throw new Exception(S.join(getExcelDataListener().getErrorMsgs(), "<br/>"));
+            throw new Exception(S.join(getExcelDataListener().getErrorMsgs(), "\n"));
         }
         // 初始设置为0，批量保存数据后更新
         if(isPreview){
@@ -265,7 +275,7 @@ public abstract class BaseExcelImportController <T extends BaseExcelDataEntity> 
             for(ExcelColumn excelColumn : excelColumns){
                 Map map = new HashMap();
                 map.put("title",excelColumn.getColName());
-                map.put("dataIndex", excelColumn.getModelField());
+                map.put("dataIndex", V.notEmpty(excelColumn.getModelFieldLabel()) ? excelColumn.getModelFieldLabel() : excelColumn.getModelField());
                 list.add(map);
             }
         }

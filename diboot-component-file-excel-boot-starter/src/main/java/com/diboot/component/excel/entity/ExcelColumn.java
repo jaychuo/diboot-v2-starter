@@ -31,4 +31,10 @@ public class ExcelColumn extends BaseEntity {
 
     @TableField
     private String validation; // 校验
+
+    /**
+     * 字典数据时使用
+     */
+    @TableField
+    private String modelFieldLabel;
 }
