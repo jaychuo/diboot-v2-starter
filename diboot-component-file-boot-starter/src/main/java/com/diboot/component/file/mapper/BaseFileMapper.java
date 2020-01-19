@@ -6,12 +6,14 @@ import com.diboot.component.file.entity.BaseFile;
 import com.diboot.core.mapper.BaseCrudMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.springframework.stereotype.Repository;
 
 /**
  * 文件相关Mapper
  * @author Mazc
  * @version 2017/4/18
  */
+@Repository
 public interface BaseFileMapper extends BaseCrudMapper<BaseFile> {
 
     @Select("SELECT * FROM file ${ew.customSqlSegment}")

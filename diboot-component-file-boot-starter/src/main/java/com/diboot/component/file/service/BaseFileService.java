@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
  * @description 基础文件Service
  * @creatime 2019-07-18 15:20
  */
-@Component
 public interface BaseFileService extends BaseService<BaseFile> {
 
     /*
