@@ -102,7 +102,7 @@ public abstract class BaseExcelDataListener <T extends BaseExcelDataEntity, E ex
     * */
     @Override
     public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-        logger.error("解析到一条表头数据：",JSON.toJSONString(headMap));
+        logger.info("解析到一条表头数据：",JSON.toJSONString(headMap));
         this.headMap = headMap;
     }
 
