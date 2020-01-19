@@ -155,6 +155,7 @@ public abstract class BaseExcelImportController <T extends BaseExcelDataEntity> 
         }
         catch(Exception e){
             logger.error("上传数据错误: "+ e.getMessage(), e);
+            return new JsonResult(Status.FAIL_OPERATION, e.getMessage());
         }
         return new JsonResult(Status.OK,"上传成功");
     }
