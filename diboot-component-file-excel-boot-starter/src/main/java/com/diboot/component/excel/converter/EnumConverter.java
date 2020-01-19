@@ -49,11 +49,25 @@ public class EnumConverter implements Converter<String> {
                 return iEnum.getItemValue();
             }
         }
+
         return null;
     }
 
     @Override
     public CellData convertToExcelData(String value, ExcelContentProperty contentProperty, GlobalConfiguration globalConfiguration) throws Exception {
-        return null;
+        ExcelField excelField = contentProperty.getField().getAnnotation(ExcelField.class);
+        IEnum iEnum = EnumHandler.findItemNameByItemValue(value, excelField.value());
+        if (V.notEmpty(value)) {
+            if (V.isEmpty(iEnum)) {
+                StringBuffer stringBuffer = new StringBuffer();
+                Arrays.stream(excelField.value().getEnumConstants()).forEach(
+                        item -> stringBuffer.append(item.getItemValue()).append(",")
+                );
+                throw new Exception("数据库格式有误，只允许填写：" + stringBuffer.toString());
+            } else {
+                return new CellData(iEnum.getItemName());
+            }
+        }
+        return new CellData("");
     }
 }
